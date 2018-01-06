@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 class _netG(nn.Module):
     def __init__(self, opt):
         super(_netG, self).__init__()
@@ -92,5 +91,7 @@ class _netlocalD(nn.Module):
         else:
             output = self.main(input)
 
-        return output.view(-1, 1)
+        return output.view(-1, 1).squeeze()
+
+#-------------for random mask training-----------
 
