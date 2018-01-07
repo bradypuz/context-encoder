@@ -268,7 +268,7 @@ for epoch in range(resume_epoch,opt.niter):
     # do checkpointing
     torch.save({'epoch':epoch+1,
                 'state_dict':netG.state_dict()},
-                '%s/model/netG_streetview.pth'%(opt.outf) )
+                '%s/model/netG.pth'%(opt.outf) )
     torch.save({'epoch':epoch+1,
                 'state_dict':netD.state_dict()},
                 '%s/model/netlocalD.pth'%(opt.outf) )
