@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataset',  default='streetview', help='cifar10 | lsun | imagenet | folder | lfw ')
 parser.add_argument('--dataroot',  default='dataset/train', help='path to dataset')
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
-parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
+parser.add_argument('--batchSize', type=int, default=16, help='input batch size')
 parser.add_argument('--imageSize', type=int, default=128, help='the height / width of the input image to network')
 
 parser.add_argument('--nz', type=int, default=100, help='size of the latent z vector')
@@ -208,7 +208,6 @@ for epoch in range(resume_epoch,opt.niter):
         # train with real
         netD.zero_grad()
         label.data.resize_(batch_size).fill_(real_label)
-
         output = netD(real_center)
         errD_real = criterion(output, label)
         errD_real.backward()
@@ -254,7 +253,7 @@ for epoch in range(resume_epoch,opt.niter):
         print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f / %.4f l_D(x): %.4f l_D(G(z)): %.4f'
               % (epoch, opt.niter, i, len(dataloader),
                  errD.data[0], errG_D.data[0],errG_l2.data[0], D_x,D_G_z1, ))
-        if i % 100 == 0:
+        if i % 500 == 0:
             vutils.save_image(real_cpu,
                     '%s/train/real/real_samples_epoch_%03d.png' % (opt.outf,epoch),  normalize=True)
             vutils.save_image(input_cropped.data,
