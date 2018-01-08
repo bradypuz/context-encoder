@@ -1,5 +1,6 @@
 /result
-/model
-/dataset
+/models
+/dataset/*
 .idea/*
 __pycache__/
+*.png
