@@ -12,6 +12,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
+from pathlib import Path
 
 from model import _netG
 
@@ -56,7 +57,7 @@ transform = transforms.Compose([transforms.Scale(opt.imageSize),
 dataset = dset.ImageFolder(root=opt.dataroot, transform=transform )
 assert dataset
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize,
-                                         shuffle=True, num_workers=int(opt.workers))
+                                         shuffle=False, num_workers=int(opt.workers))
 
 
 input_real = torch.FloatTensor(opt.batchSize, 3, opt.imageSize, opt.imageSize)
@@ -75,49 +76,58 @@ input_real = Variable(input_real)
 input_cropped = Variable(input_cropped)
 real_center = Variable(real_center)
 
-dataiter = iter(dataloader)
-real_cpu, _ = dataiter.next()
+try:
+    os.makedirs(opt.outf)
+except OSError:
+    pass
 
-input_real.data.resize_(real_cpu.size()).copy_(real_cpu)
-input_cropped.data.resize_(real_cpu.size()).copy_(real_cpu)
-real_center_cpu = real_cpu[:,:,int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2),int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2)]
-real_center.data.resize_(real_center_cpu.size()).copy_(real_center_cpu)
+for i, data in enumerate(dataloader):
+    real_cpu, _ = data
+    filename = dataloader.dataset.imgs[i][0]
+    path = Path(filename)
+    dir = os.path.dirname(filename)
+    name = path.name
+    save_path = os.path.join(opt.outf, name)
+    input_real.data.resize_(real_cpu.size()).copy_(real_cpu)
+    input_cropped.data.resize_(real_cpu.size()).copy_(real_cpu)
+    # real_center_cpu = real_cpu[:,:,int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2),int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2)]
+    # real_center.data.resize_(real_center_cpu.size()).copy_(real_center_cpu)
 
-input_cropped.data[:,0,int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred), int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred)] = 2*117.0/255.0 - 1.0
-input_cropped.data[:,1,int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred), int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred)] = 2*104.0/255.0 - 1.0
-input_cropped.data[:,2,int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred), int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred)] = 2*123.0/255.0 - 1.0
+    input_cropped.data[:,0,int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred), int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred)] = 2*117.0/255.0 - 1.0
+    input_cropped.data[:,1,int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred), int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred)] = 2*104.0/255.0 - 1.0
+    input_cropped.data[:,2,int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred), int(opt.imageSize/4+opt.overlapPred):int(opt.imageSize/4+opt.imageSize/2-opt.overlapPred)] = 2*123.0/255.0 - 1.0
 
-fake = netG(input_cropped)
-errG = criterionMSE(fake,real_center)
+    fake = netG(input_cropped)
+    errG = criterionMSE(fake,real_center)
 
-recon_image = input_cropped.clone()
-recon_image.data[:,:,int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2),int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2)] = fake.data
+    recon_image = input_cropped.clone()
+    recon_image.data[:,:,int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2),int(opt.imageSize/4):int(opt.imageSize/4+opt.imageSize/2)] = fake.data
 
-vutils.save_image(real_cpu,'val_real_samples.png',normalize=True)
-vutils.save_image(input_cropped.data,'val_cropped_samples.png',normalize=True)
-vutils.save_image(recon_image.data,'val_recon_samples.png',normalize=True)
-p=0
-l1=0
-l2=0
-fake = fake.data.numpy()
-real_center = real_center.data.numpy()
-from psnr import psnr
-import numpy as np
-
-t = real_center - fake
-l2 = np.mean(np.square(t))
-l1 = np.mean(np.abs(t))
-real_center = (real_center+1)*127.5
-fake = (fake+1)*127.5
-
-for i in range(opt.batchSize):
-    p = p + psnr(real_center[i].transpose(1,2,0) , fake[i].transpose(1,2,0))
-
-print(l2)
-
-print(l1)
-
-print(p/opt.batchSize)
+    # vutils.save_image(real_cpu,'%s/val_real_samples.png'%(save_path),normalize=True)
+    # vutils.save_image(input_cropped.data,'val_cropped_samples.png',normalize=True)
+    vutils.save_image(recon_image.data,save_path,normalize=True)
+    # p=0
+    # l1=0
+    # l2=0
+    # fake = fake.data.numpy()
+    # real_center = real_center.data.numpy()
+    # from psnr import psnr
+    # import numpy as np
+    #
+    # t = real_center - fake
+    # l2 = np.mean(np.square(t))
+    # l1 = np.mean(np.abs(t))
+    # real_center = (real_center+1)*127.5
+    # fake = (fake+1)*127.5
+    #
+    # for i in range(opt.batchSize):
+    #     p = p + psnr(real_center[i].transpose(1,2,0) , fake[i].transpose(1,2,0))
+    #
+    # print(l2)
+    #
+    # print(l1)
+    #
+    # print(p/opt.batchSize)
 
 
 
