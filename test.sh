@@ -1,1 +1,1 @@
-python test.py --netG /media/snie/DATA/context-encoder/result/celeba1024_v1/model/netG.pth --dataroot /home/snie/Desktop/celeba_1024_ce/test --outf /media/snie/DATA/context-encoder/result/celeba1024_v1/result --batchSize 1 --imageSize 1024
+python test.py --netG /media/snie/DATA/context-encoder/result/celeba512_v1/model/netG.pth --dataroot /home/snie/Desktop/celeba_1024_ce/test --outf /media/snie/DATA/context-encoder/result/celeba512_v1/result --batchSize 1 --imageSize 512
