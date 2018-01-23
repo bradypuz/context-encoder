@@ -105,7 +105,7 @@ for i, data in enumerate(dataloader):
 
     # vutils.save_image(real_cpu,'%s/val_real_samples.png'%(save_path),normalize=True)
     # vutils.save_image(input_cropped.data,'val_cropped_samples.png',normalize=True)
-    vutils.save_image(recon_image.data,save_path,normalize=True)
+    vutils.save_image(recon_image.data,save_path,normalize=True,padding=0)
     # p=0
     # l1=0
     # l2=0

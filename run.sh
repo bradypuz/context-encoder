@@ -1,2 +1,2 @@
 # !/bin/bash 
-python train.py --dataset folder --dataroot /media/zeyuan/ACD207B0D2077DB8/dataset/celeba_256_ce/train --cuda --wtl2 0.999 --niter 500 --outf result/celeba128_v1 --imageSize 128
+python train.py --dataset folder --dataroot /home/zeyuan/dataset/celeba_128 --cuda --wtl2 0.999 --niter 500 --outf result/testRun --imageSize 128
